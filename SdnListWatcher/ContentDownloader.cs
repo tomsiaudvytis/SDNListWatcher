@@ -1,42 +1,33 @@
 ﻿using Common.Configurations;
 using Common.Interfaces;
 using Microsoft.Extensions.Options;
-using RestSharp;
 
 namespace SdnListWatcher
 {
     public class ContentDownloader : IContentDownloader
     {
-        private readonly IRestClient _client;
         private readonly UrlSettings _urlSettings;
+        private readonly IRestClientWrapper _restClientWrapper;
 
-        public ContentDownloader(IOptions<UrlSettings> urlSettings)
+        public ContentDownloader(IOptions<UrlSettings> urlSettings, IRestClientWrapper restClientWrapper)
         {
-            _client = new RestClient();
             _urlSettings = urlSettings.Value;
+            _restClientWrapper = restClientWrapper;
         }
 
         public string DownloadOfacSubscriptionPageContent()
         {
-            return Get(_urlSettings.OfacUrl);
+            return _restClientWrapper.Get(_urlSettings.OfacUrl);
         }
 
         public string DownloadUpdatedSdns()
         {
-            return Get(_urlSettings.SdnFeedUrl);
+            return _restClientWrapper.Get(_urlSettings.SdnFeedUrl);
         }
 
         public string DownloadContent(string link)
         {
-            return Get(link);
-        }
-
-        private string Get(string url)
-        {
-            var request = new RestRequest(url);
-            var response = _client.Execute(request);
-
-            return response?.Content;
+            return _restClientWrapper.Get(link);
         }
     }
 }

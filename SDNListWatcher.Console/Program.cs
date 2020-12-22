@@ -1,26 +1,38 @@
 ﻿using System;
+using System.IO;
 using Common.Interfaces;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using SdnListWatcher.Extensions;
 
 namespace SDNListWatcher.Console
 {
     class Program
     {
-        private static IServiceProvider _serviceProvider;
-
         static void Main(string[] args)
         {
-            ConfigureServices();
-            var manager = _serviceProvider.GetService<IManager>();
-            manager?.StartMonitoring();
+            try
+            {
+                var configuration = new ConfigurationBuilder()
+                                    .SetBasePath(Directory.GetCurrentDirectory())
+                                    .AddJsonFile("appSettings.json")
+                                    .Build();
+
+                var serviceProvider = ConfigureServices(configuration);
+                var watcher = serviceProvider.GetService<ISdnListWatcher>();
+
+                // add watcher to timer run every some time
+                watcher?.RunSingleCheck();
+            }
+            catch (Exception)
+            {
+                // log to event viewer
+            }
         }
 
-        public static void ConfigureServices()
-        {
-            IServiceCollection services = new ServiceCollection();
-            SdnListWatcher.Extensions.ServiceCollection.RegisterSdnListWatcher(services)
-
-            
-        }
+        private static IServiceProvider ConfigureServices(IConfiguration configuration)
+            => new ServiceCollection()
+               .RegisterSdnListWatcher(configuration)
+               .BuildServiceProvider();
     }
 }

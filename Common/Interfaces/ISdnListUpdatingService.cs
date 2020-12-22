@@ -2,6 +2,6 @@
 {
     public interface ISdnListUpdatingService
     {
-        void UpdateDatabaseWithNewEsds();
+        void DownloadAndStoreNewSdn();
     }
 }

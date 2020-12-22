@@ -1,0 +1,6 @@
+To improve:
+
+1. Add real life database ( now just dictionary )
+2. Write more unit tests 
+3. Proper Regex, could even write less code with good regex extraction
+4. Use windows service to manage console application

@@ -4,6 +4,6 @@ namespace Common.Interfaces
 {
     public interface ISdnItemsProcessingService
     {
-        void ProcessSdnUpdate(OfacFeedSubscription ofacFeedSubscription);
+        void ProcessNewestSdnItems(OfacFeedSubscription ofacFeedSubscription);
     }
 }

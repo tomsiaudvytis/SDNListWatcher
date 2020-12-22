@@ -12,29 +12,29 @@ namespace SdnListWatcher.Services
     public class SdnItemsProcessingService : ISdnItemsProcessingService
     {
         private readonly IContentDownloader _contentDownloader;
-        private readonly IMockDatabase _mockDatabase;
+        private readonly ISdnRepository _sdnRepository;
         private readonly IContentParser _contentParser;
         private readonly ILogger _logger;
 
-        public SdnItemsProcessingService(IMockDatabase mockDatabase,
+        public SdnItemsProcessingService(ISdnRepository sdnRepository,
                                          IContentDownloader contentDownloader,
                                          IContentParser contentParser,
                                          ILogger logger)
         {
-            _mockDatabase = mockDatabase;
+            _sdnRepository = sdnRepository;
             _contentDownloader = contentDownloader;
             _contentParser = contentParser;
             _logger = logger;
         }
 
-        public void ProcessSdnUpdate(OfacFeedSubscription ofacFeedSubscription)
+        public void ProcessNewestSdnItems(OfacFeedSubscription ofacFeedSubscription)
         {
             for (var i = ofacFeedSubscription.Channel.Items.Count - 1; i >= 0; i--)
             {
                 var item = ofacFeedSubscription.Channel.Items[i];
 
                 var publicationDate = item.PubDate.ParsePublicationDate();
-                if (publicationDate == null || !(publicationDate > _mockDatabase.GetLastUpdateDateTime()))
+                if (publicationDate == null || !(publicationDate > _sdnRepository.GetLastUpdateDateTime()))
                     continue;
 
                 var updatedSource = _contentDownloader.DownloadContent(item.Link);
@@ -76,9 +76,9 @@ namespace SdnListWatcher.Services
                     }
 
                     var cleanName = sdnCollectionMatch.Value.CleanSdnName();
-                    var sdnEntry = _mockDatabase.GetEntryByLastName(cleanName);
+                    var sdnEntry = _sdnRepository.GetSdnByLastName(cleanName);
                     sdnEntry.SdnChangeType = sdnChangeType;
-                    _mockDatabase.AddSdnRecordToHistory(sdnPublicationDate, sdnEntry);
+                    _sdnRepository.Add(sdnPublicationDate, sdnEntry);
                 }
             }
         }

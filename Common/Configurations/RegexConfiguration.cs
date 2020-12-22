@@ -1,6 +1,6 @@
 ﻿namespace Common.Configurations
 {
-    public class RegexConfigurationPattern
+    public class RegexConfiguration
     {
         public string Add { get; set; }
         public string Delete { get; set; }

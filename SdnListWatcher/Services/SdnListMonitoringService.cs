@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Globalization;
+using Common.Enums;
 using Common.Interfaces;
 using Common.Models;
+using SdnListWatcher.Extensions;
 
 namespace SdnListWatcher.Services
 {
@@ -9,15 +11,18 @@ namespace SdnListWatcher.Services
     {
         private readonly IContentDownloader _contentDownloader;
         private readonly IXmlParser _xmlParser;
-        private readonly IMockDatabase _mockDatabase;
+        private readonly ISdnRepository _sdnRepository;
+        private readonly ILogger _logger;
 
-        public SdnListMonitoringService(IMockDatabase mockDatabase,
+        public SdnListMonitoringService(ISdnRepository sdnRepository,
                                         IXmlParser xmlParser,
-                                        IContentDownloader contentDownloader)
+                                        IContentDownloader contentDownloader,
+                                        ILogger logger)
         {
-            _mockDatabase = mockDatabase;
+            _sdnRepository = sdnRepository;
             _xmlParser = xmlParser;
             _contentDownloader = contentDownloader;
+            _logger = logger;
         }
 
         public OfacFeedSubscription GetLatestSdnSubscription()
@@ -31,22 +36,15 @@ namespace SdnListWatcher.Services
 
         public bool SdnListBeenUpdated(OfacFeedSubscription ofacFeedSubscription)
         {
-            var lastPublicationDate = ParsePublicationDate(ofacFeedSubscription.Channel.PubDate);
+            var lastPublicationDate = ofacFeedSubscription.Channel.PubDate.ParsePublicationDate();
 
             if (!lastPublicationDate.HasValue)
             {
-                // log ....
+                _logger.Log("lastPublicationDate parsing failed", LogLevel.Error);
                 return false;
             }
 
-            return _mockDatabase.GetLastUpdateDateTime() < lastPublicationDate;
-        }
-
-        private DateTime? ParsePublicationDate(string date)
-        {
-            return DateTime.TryParseExact(date, "dd MMM yyyy HH:mm:ss EDT", null, DateTimeStyles.None, out var result)
-                ? result
-                : (DateTime?) null;
+            return _sdnRepository.GetLastUpdateDateTime() < lastPublicationDate;
         }
     }
 }

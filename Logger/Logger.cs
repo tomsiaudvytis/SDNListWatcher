@@ -1,5 +1,7 @@
 ﻿using System;
+using Common.Configurations;
 using Common.Enums;
+using Microsoft.Extensions.Options;
 using Serilog;
 using ILogger = Common.Interfaces.ILogger;
 
@@ -9,10 +11,10 @@ namespace Logger
     {
         private readonly Serilog.ILogger _logger;
 
-        public Logger()
+        public Logger(IOptions<LoggingSettings> loggingSettings)
         {
             _logger = new LoggerConfiguration()
-                      .WriteTo.File("log.txt", rollingInterval: RollingInterval.Day)
+                      .WriteTo.File(loggingSettings.Value.FileName, rollingInterval: RollingInterval.Day)
                       .CreateLogger();
         }
 

@@ -4,17 +4,17 @@ using Common.Models;
 
 namespace SdnListWatcher
 {
-    public class Manager : IManager
+    public class SdnListWatcher : ISdnListWatcher
     {
         private readonly ISdnListMonitoringService _sdnListMonitoringService;
         private readonly ISdnListUpdatingService _sdnListUpdatingService;
         private readonly ISdnItemsProcessingService _sdnItemsProcessingService;
         private readonly ILogger _logger;
 
-        public Manager(ISdnListUpdatingService sdnListUpdatingService,
-                       ISdnListMonitoringService sdnListMonitoringService,
-                       ISdnItemsProcessingService sdnItemsProcessingService,
-                       ILogger logger)
+        public SdnListWatcher(ISdnListUpdatingService sdnListUpdatingService,
+                              ISdnListMonitoringService sdnListMonitoringService,
+                              ISdnItemsProcessingService sdnItemsProcessingService,
+                              ILogger logger)
         {
             _sdnListUpdatingService = sdnListUpdatingService;
             _sdnListMonitoringService = sdnListMonitoringService;
@@ -22,7 +22,7 @@ namespace SdnListWatcher
             _logger = logger;
         }
 
-        public void StartMonitoring()
+        public void RunSingleCheck()
         {
             _logger.Log("StartMonitoring() => Application started", LogLevel.Information);
 
@@ -32,17 +32,17 @@ namespace SdnListWatcher
                 return;
             }
 
-            UpdateDatabaseWithNewEsd();
-            ProcessSdnItemsUpdate(updatedItems);
+            DownloadAndStoreNewSdn();
+            ProcessNewestSdnItems(updatedItems);
 
             _logger.Log("Application finished, existing", LogLevel.Information);
         }
 
-        private void ProcessSdnItemsUpdate(OfacFeedSubscription ofacFeedSubscription)
-            => _sdnItemsProcessingService.ProcessSdnUpdate(ofacFeedSubscription);
+        private void ProcessNewestSdnItems(OfacFeedSubscription ofacFeedSubscription)
+            => _sdnItemsProcessingService.ProcessNewestSdnItems(ofacFeedSubscription);
 
-        private void UpdateDatabaseWithNewEsd()
-            => _sdnListUpdatingService.UpdateDatabaseWithNewEsds();
+        private void DownloadAndStoreNewSdn()
+            => _sdnListUpdatingService.DownloadAndStoreNewSdn();
 
         private bool SdnListBeenUpdated(out OfacFeedSubscription ofacFeedSubscription)
         {

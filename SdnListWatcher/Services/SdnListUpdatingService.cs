@@ -1,4 +1,5 @@
-﻿using Common.Interfaces;
+﻿using Common.Enums;
+using Common.Interfaces;
 using Common.Models;
 
 namespace SdnListWatcher.Services
@@ -7,24 +8,33 @@ namespace SdnListWatcher.Services
     {
         private readonly IContentDownloader _contentDownloader;
         private readonly IXmlParser _xmlParser;
-        private readonly IMockDatabase _mockDatabase;
+        private readonly ISdnRepository _sdnRepository;
+        private readonly ILogger _logger;
 
-        public SdnListUpdatingService(IMockDatabase mockDatabase,
+        public SdnListUpdatingService(ISdnRepository sdnRepository,
                                       IXmlParser xmlParser,
-                                      IContentDownloader contentDownloader)
+                                      IContentDownloader contentDownloader,
+                                      ILogger logger)
         {
-            _mockDatabase = mockDatabase;
+            _sdnRepository = sdnRepository;
             _xmlParser = xmlParser;
             _contentDownloader = contentDownloader;
+            _logger = logger;
         }
 
-        public void UpdateDatabaseWithNewEsds()
+        public void DownloadAndStoreNewSdn()
         {
             var sdnSource = _contentDownloader.DownloadUpdatedSdns();
 
+            if (sdnSource == null)
+            {
+                _logger.Log("SdnSource download failed", LogLevel.Error);
+                return;
+            }
+
             if (_xmlParser.TryDeserializeObject<SdnList>(out var updatedSdn, sdnSource))
             {
-                _mockDatabase.UpdateExistingSdnItems(updatedSdn);
+                _sdnRepository.AddMany(updatedSdn);
             }
         }
     }

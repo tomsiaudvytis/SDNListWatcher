@@ -1,12 +1,20 @@
 ﻿using System;
 using System.IO;
 using System.Xml.Serialization;
+using Common.Enums;
 using Common.Interfaces;
 
 namespace SdnListWatcher
 {
     public class XmlParser : IXmlParser
     {
+        private readonly ILogger _logger;
+
+        public XmlParser(ILogger logger)
+        {
+            _logger = logger;
+        }
+
         public bool TryDeserializeObject<T>(out T result, string content)
         {
             result = default(T);
@@ -18,6 +26,7 @@ namespace SdnListWatcher
             }
             catch (Exception e)
             {
+                _logger.Log($"TryDeserializeObject() => {e.Message}", LogLevel.Fatal);
                 return false;
             }
         }
